@@ -1,23 +1,17 @@
-from enum import (
-    auto,
-    Enum,
-    unique
-)
+class Token():
+    def __init__(self, row, column, lexeme):
+        self.row = row
+        self.column = column
+        self.lexeme = lexeme
 
-from typing import NamedTuple
+    def __str__(self):
+        return f"({self.row}, {self.column}) {self.lexeme}"
 
+    def get_row(self):
+        return self.row
 
-@unique
-class TokenType(Enum):
-    ASSIGN = auto()
-    SLASH = auto()
-    LBRACE = auto()
-    RBRACE = auto()
+    def get_column(self):
+        return self.column
 
-
-class Token(NamedTuple):
-    token_type: TokenType
-    literal: str
-
-    def __str__(self) -> str:
-        return f'Type: {self.token_type}, Literal: {self.literal}'
+    def get_lexeme(self):
+        return self.lexeme

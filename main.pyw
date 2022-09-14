@@ -51,18 +51,39 @@ class App(ctk.CTk):
         self.side_menu.grid_rowconfigure(11, minsize=10)
         # Create widgets
         self.upload_file_button = ctk.CTkButton(
-            self.side_menu, text="Cargar archivo",
+            self.side_menu, text="Abrir",
         )
         self.upload_file_button.grid(
             row=0, column=0, sticky="nsew", padx=15, pady=15)
 
-        # Components
-        self.side_title = ctk.CTkLabel(self.side_menu, text="Simulaciones de:")
-        self.side_title.grid(row=1, column=0, pady=10, padx=10)
+        self.save_file_button = ctk.CTkButton(
+            self.side_menu, text="Guardar",
+        )
 
-        self.report_button = ctk.CTkButton(
-            self.side_menu, text="Reporte")
-        self.report_button.grid(
+        self.save_file_button.grid(
+            row=1, column=0, sticky="nsew", padx=15, pady=15)
+
+        self.scanner_button = ctk.CTkButton(
+            self.side_menu, text="Analizar",
+        )
+
+        self.scanner_button.grid(
+            row=2, column=0, sticky="nsew", padx=15, pady=15)
+
+        self.errors_button = ctk.CTkButton(
+            self.side_menu, text="Errores",
+        )
+
+        self.errors_button.grid(
+            row=3, column=0, sticky="nsew", padx=15, pady=15)
+
+        # Components
+        # self.side_title = ctk.CTkLabel(self.side_menu, text="Simulaciones de:")
+        # self.side_title.grid(row=1, column=0, pady=10, padx=10)
+
+        self.exit_button = ctk.CTkButton(
+            self.side_menu, text="Salir", command=self.destroy)
+        self.exit_button.grid(
             row=11, column=0, sticky="nsew", padx=10, pady=20)
 
         ''' ====== Simulation frame ====== '''
@@ -81,6 +102,9 @@ class App(ctk.CTk):
     #         self.side_menu, text=name, command=lambda: self.display_frame_simulation(name))
     #     button_for_patient.grid(
     #         row=index, column=0, sticky="nsew", padx=10, pady=10)
+
+    def destroy(self):
+        return super().destroy()
 
     def change_message(self):
         self.simulation_frame.configure(
