@@ -1,9 +1,10 @@
 import platform
 from tkinter import Menu, filedialog, messagebox, Text
 import customtkinter as ctk
-from controller.lexer import Lexer
 
 # Data
+from controller.lexer import Lexer
+from controller.operation import Operation
 
 # Helpers
 from model.helpers.WindowPosition import WindowPosition
@@ -151,8 +152,13 @@ class App(ctk.CTk):
         else:
             information: str = self.entry_information.get("1.0", "end-1c")
             ProcessInformation.save_information(self.PATH_FILE, information)
-            scanner: Lexer = Lexer(self.PATH_FILE)
-            scanner.scanner()
+            scanner: Lexer = Lexer()
+            result = scanner.scan(information, Operation("suma"))
+
+            for token in result[1]:
+                print(token.operate())
+
+            scanner.imprimir_tokens()
 
             messagebox.showinfo(
                 "Información", "El archivo se ha analizado correctamente")
@@ -169,7 +175,6 @@ class App(ctk.CTk):
         self.bind_all("<Command-S>", lambda event: self.save_file_as())
         self.bind_all("<Command-r>", lambda event: self.scanner())
         self.bind_all("<Command-u>", lambda event: self.about())
-        self.bind_all("<Command-t>", lambda event: self.about())
         self.bind_all("<Command-q>", lambda event: self.destroy())
 
 
