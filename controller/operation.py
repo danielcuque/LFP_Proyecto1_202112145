@@ -1,7 +1,7 @@
 class Operation:
-    def __init__(self, operation, *args):
+    def __init__(self, operation):
         self.operation = operation
-        self.args = args
-
-    def __call__(self):
-        return self.operation(*self.args)
+        self.operators = []
+    
+    def operate(self):
+        pass

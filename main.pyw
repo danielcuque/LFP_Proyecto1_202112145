@@ -1,5 +1,7 @@
-from tkinter import filedialog, messagebox, Text
+import platform
+from tkinter import Menu, filedialog, messagebox, Text
 import customtkinter as ctk
+from controller.lexer import Lexer
 
 # Data
 
@@ -31,6 +33,14 @@ class App(ctk.CTk):
         self.minsize(self.APP_WIDTH, self.APP_HEIGHT)
         self.protocol("WM_DELETE_WINDOW", self.destroy)
 
+        command_to_execute = ""
+        my_os = platform.system()
+
+        if my_os == "Windows":
+            command_to_execute = "Ctrl"
+        elif my_os == "Darwin":
+            command_to_execute = "Cmd"
+
         # Position of the app
         self.geometry(WindowPosition().get_window_position(self.winfo_screenwidth(
         ), self.winfo_screenheight(), self.APP_WIDTH, self.APP_HEIGHT))
@@ -42,71 +52,45 @@ class App(ctk.CTk):
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
-        # Create a side menu
-        self.side_menu = ctk.CTkFrame(self,
-                                      width=200, corner_radius=0)
-        self.side_menu.grid(row=0, column=0, sticky="nswe")
+        # Menu
+        self.menu_options = Menu(self)
+        self.config(menu=self.menu_options)
 
-        '''====== Side menu buttons ======'''
-        self.side_menu.grid_rowconfigure(0, minsize=10)
-        self.side_menu.grid_rowconfigure((4, 10), weight=1)
-        self.side_menu.grid_rowconfigure(11, minsize=10)
+        # Menu File
+        self.file_menu = Menu(self.menu_options, tearoff=0)
+        self.file_menu.add_command(label="Abrir", command=self.open_file,
+                                   accelerator=f"{command_to_execute}+O")
 
-        # Create widgets
-        self.upload_file_button = ctk.CTkButton(
-            self.side_menu, text="Abrir",
-            command=self.open_file)
+        self.file_menu.add_separator()
 
-        self.upload_file_button.grid(
-            row=0, column=0, sticky="nsew", padx=15, pady=15)
+        self.file_menu.add_command(
+            label="Guardar", command=self.save_file, accelerator=f'{command_to_execute}+S')
+        self.file_menu.add_command(
+            label="Guardar como", command=self.save_file_as, accelerator=f"{command_to_execute}+Shift+S")
 
-        self.save_file_button = ctk.CTkButton(
-            self.side_menu, text="Guardar",
-            command=self.save_file)
+        # Menu Tools
+        self.scanner_menu = Menu(self.menu_options, tearoff=0)
+        self.scanner_menu.add_command(
+            label="Analizar", command=self.scanner, accelerator=f"{command_to_execute}+R")
 
-        self.save_file_button.grid(
-            row=1, column=0, sticky="nsew", padx=15, pady=15)
+        # Menu Help
+        self.help_menu = Menu(self.menu_options, tearoff=0)
+        self.help_menu.add_command(
+            label="Guía de usuario", command=self.about, accelerator=f"{command_to_execute}+U")
+        self.help_menu.add_command(
+            label="Guía técnica", command=self.about, accelerator=f"{command_to_execute}+T")
 
-        self.scanner_button = ctk.CTkButton(
-            self.side_menu, text="Analizar",
-        )
+        # Add menus to menu bar
+        self.exit_menu = Menu(self.menu_options, tearoff=0)
+        self.exit_menu.add_command(
+            label="Salir", command=self.destroy, accelerator=f"{command_to_execute}+Q")
 
-        self.scanner_button.grid(
-            row=2, column=0, sticky="nsew", padx=15, pady=15)
-
-        self.errors_button = ctk.CTkButton(
-            self.side_menu, text="Errores",
-        )
-
-        self.errors_button.grid(
-            row=3, column=0, sticky="nsew", padx=15, pady=15)
-
-        # Help buttons
-        self.user_guide_button = ctk.CTkButton(
-            self.side_menu, text="Guía de usuario",
-        )
-
-        self.user_guide_button.grid(
-            row=7, column=0, sticky="nsew", padx=15, pady=15)
-
-        self.tecnical_guide_button = ctk.CTkButton(
-            self.side_menu, text="Guía técnica",
-        )
-
-        self.tecnical_guide_button.grid(
-            row=8, column=0, sticky="nsew", padx=15, pady=15)
-
-        self.helpul_topics_button = ctk.CTkButton(
-            self.side_menu, text="Temas útiles",
-        )
-
-        self.helpul_topics_button.grid(
-            row=9, column=0, sticky="nsew", padx=15, pady=15)
-
-        self.exit_button = ctk.CTkButton(
-            self.side_menu, text="Salir", command=self.destroy)
-        self.exit_button.grid(
-            row=11, column=0, sticky="nsew", padx=10, pady=20)
+        # Adding menus to menu bar
+        self.menu_options.add_cascade(label="Archivo", menu=self.file_menu)
+        self.menu_options.add_cascade(
+            label="Analizador", menu=self.scanner_menu)
+        self.menu_options.add_cascade(label="Ayuda", menu=self.help_menu)
+        self.menu_options.add_cascade(label="Salir", menu=self.exit_menu)
 
         ''' ====== Information frame ====== '''
         self.information_frame = ctk.CTkLabel(master=self,
@@ -119,17 +103,7 @@ class App(ctk.CTk):
         self.information_frame.grid(
             row=0, column=1, sticky="nswe", padx=10, pady=10)
 
-        self.disabled_buttons()
-
-    def disabled_buttons(self):
-        self.save_file_button.configure(state="disabled")
-        self.scanner_button.configure(state="disabled")
-        self.errors_button.configure(state="disabled")
-
-    def enabled_buttons(self):
-        self.save_file_button.configure(state="normal")
-        self.scanner_button.configure(state="normal")
-        self.errors_button.configure(state="normal")
+        self.create_short_cut()
 
     def open_file(self):
         path_file = filedialog.askopenfilename(
@@ -154,8 +128,6 @@ class App(ctk.CTk):
             row=0, column=0, sticky="nsew", padx=10, pady=10)
         self.entry_information.insert("1.0", uploaded_inforation)
 
-        self.enabled_buttons()
-
     def save_file(self):
         if len(self.PATH_FILE) <= 0:
             messagebox.showerror(
@@ -164,8 +136,41 @@ class App(ctk.CTk):
             information: str = self.entry_information.get("1.0", "end-1c")
             ProcessInformation.save_information(self.PATH_FILE, information)
 
+    def save_file_as(self):
+        path_to_save = filedialog.asksaveasfilename(
+            initialdir="/", title="Select file", filetypes=(("Text files", "*.txt"), ("all files", "*.*")))
+        if len(path_to_save) > 0:
+            information: str = self.entry_information.get("1.0", "end-1c")
+            ProcessInformation.save_information_as(path_to_save, information)
+            self.PATH_FILE = path_to_save
+
+    def scanner(self):
+        if len(self.PATH_FILE) <= 0:
+            messagebox.showerror(
+                "Error", "No se ha cargado ningún archivo")
+        else:
+            information: str = self.entry_information.get("1.0", "end-1c")
+            ProcessInformation.save_information(self.PATH_FILE, information)
+            scanner: Lexer = Lexer(self.PATH_FILE)
+            scanner.scanner()
+
+            messagebox.showinfo(
+                "Información", "El archivo se ha analizado correctamente")
+
+    def about(self):
+        pass
+
     def destroy(self):
         return super().destroy()
+
+    def create_short_cut(self):
+        self.bind_all("<Command-o>", lambda event: self.open_file())
+        self.bind_all("<Command-s>", lambda event: self.save_file())
+        self.bind_all("<Command-S>", lambda event: self.save_file_as())
+        self.bind_all("<Command-r>", lambda event: self.scanner())
+        self.bind_all("<Command-u>", lambda event: self.about())
+        self.bind_all("<Command-t>", lambda event: self.about())
+        self.bind_all("<Command-q>", lambda event: self.destroy())
 
 
 if __name__ == "__main__":
