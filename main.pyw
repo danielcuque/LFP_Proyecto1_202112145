@@ -94,15 +94,9 @@ class App(ctk.CTk):
         self.menu_options.add_cascade(label="Salir", menu=self.exit_menu)
 
         ''' ====== Information frame ====== '''
-        self.information_frame = ctk.CTkLabel(master=self,
-                                              text="Cargue un archivo para comenzar",
-                                              height=50,
-                                              corner_radius=6,
-                                              text_font=("Roboto Medium", -25), text_color="white",
-                                              fg_color=("white", "gray38"),
-                                              )
-        self.information_frame.grid(
-            row=0, column=1, sticky="nswe", padx=10, pady=10)
+        self.entry_information = Text(self, width=50)
+        self.entry_information.grid(
+            row=0, column=1, sticky="nsew", padx=10, pady=10)
 
         self.create_short_cut()
 
@@ -124,16 +118,9 @@ class App(ctk.CTk):
                 self.show_info_file(uploaded_information)
 
     def show_info_file(self, uploaded_inforation: str):
-        self.entry_information = Text(self.information_frame, width=50)
-        self.entry_information.grid(
-            row=0, column=0, sticky="nsew", padx=10, pady=10)
         self.entry_information.insert("1.0", uploaded_inforation)
 
     def save_file(self):
-        if len(self.PATH_FILE) <= 0:
-            messagebox.showerror(
-                "Error", "No se ha cargado ningún archivo")
-        else:
             information: str = self.entry_information.get("1.0", "end-1c")
             ProcessInformation.save_information(self.PATH_FILE, information)
 
@@ -146,12 +133,11 @@ class App(ctk.CTk):
             self.PATH_FILE = path_to_save
 
     def scanner(self):
-        if len(self.PATH_FILE) <= 0:
+        information: str = self.entry_information.get("1.0", "end-1c")
+        if len(information) <= 0:
             messagebox.showerror(
-                "Error", "No se ha cargado ningún archivo")
+                "Error", "No hay texto para analizar")
         else:
-            information: str = self.entry_information.get("1.0", "end-1c")
-            ProcessInformation.save_information(self.PATH_FILE, information)
             scanner: Lexer = Lexer()
             result = scanner.scan(information, Operation("suma"))
 

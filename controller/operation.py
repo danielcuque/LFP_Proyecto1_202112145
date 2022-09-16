@@ -1,5 +1,5 @@
 class Operation:
-    def __init__(self, type_operation):
+    def __init__(self, type_operation: str):
         self.type_operation = type_operation
         self.operands = []
 

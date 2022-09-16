@@ -3,7 +3,7 @@ import re
 
 class ValidCharacters:
     def __init__(self) -> None:
-        self.letters = re.compile(r'[a-zA-Z]')
+        self.letters = re.compile(r'[a-zA-Z\[\]]')
         self.numbers = re.compile(r'[0-9.]')
         self.brackets_open = re.compile(r'[<]')
         self.brackets_close = re.compile(r'[>]')
