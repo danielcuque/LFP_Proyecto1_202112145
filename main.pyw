@@ -5,6 +5,7 @@ import customtkinter as ctk
 # Data
 from controller.lexer import Lexer
 from controller.operation import Operation
+from controller.token import Token
 
 # Helpers
 from model.helpers.WindowPosition import WindowPosition
@@ -121,8 +122,8 @@ class App(ctk.CTk):
         self.entry_information.insert("1.0", uploaded_inforation)
 
     def save_file(self):
-            information: str = self.entry_information.get("1.0", "end-1c")
-            ProcessInformation.save_information(self.PATH_FILE, information)
+        information: str = self.entry_information.get("1.0", "end-1c")
+        ProcessInformation.save_information(self.PATH_FILE, information)
 
     def save_file_as(self):
         path_to_save = filedialog.asksaveasfilename(
@@ -138,13 +139,14 @@ class App(ctk.CTk):
             messagebox.showerror(
                 "Error", "No hay texto para analizar")
         else:
-            scanner: Lexer = Lexer()
-            result = scanner.scan(information, Operation("suma"))
+            scanner: Lexer = Lexer(information)
 
-            for token in result[1]:
-                print(token.operate())
+            # Get tokens
+            tokens: list[Token] = []
+            for i in range(len(information)):
+                tokens.append(scanner.next_token())
 
-            scanner.imprimir_tokens()
+            print(tokens)
 
             messagebox.showinfo(
                 "Información", "El archivo se ha analizado correctamente")
