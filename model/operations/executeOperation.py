@@ -38,23 +38,24 @@ class ExecuteOperation:
             if token.get_type_name() == "START_TAG":
                 if "operacion" in token.literal.lower():
                     self._open_tags += 1
-                    res += "("
                     equals_index: int = token.literal.find("=")
                     close_tag: int = token.literal.find(">")
                     operation: str = token.literal.strip()[equals_index+2: close_tag]
                     self._read_position += 1
-                    res += self._execute_operations(operation)
+                    res += "(" + self._execute_operations(operation)[:-1] + ") "
             elif token.get_type_name() == "NUMBER":
-                res += f'{token.literal} {valid_operations[operation]} '
+                if operation in valid_operations:
+                    if operation.upper() == "SENO" or operation == "COSENO" or operation == "TANGENTE":
+                        res += f"{valid_operations[operation]}({token.literal}) "
+                    else:
+                        res += f'{token.literal}{valid_operations[operation]}'
             elif token.get_type_name() == "CLOSE_TAG":
                 if "operacion" in token.literal.lower():
                     self._open_tags -= 1
-                    res = res[:-2]
-                    res += ")"
                     return res
+
             if self._open_tags == 0:
                 if res != "":
-                    res = res[:-2]
-                    self.result_operations.append(res)
+                    self.result_operations.append(res[:-1])
                     res = ""
             self._read_position += 1
