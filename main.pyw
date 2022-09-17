@@ -14,7 +14,7 @@ from controller.lexer import Lexer
 # Helpers
 from model.helpers.windowPosition import get_window_position
 from model.docs.processInformation import read_information, save_information, save_information_as
-from model.operations.executeOperation import execute_operation
+from model.operations.executeOperation import ExecuteOperation
 
 # Views
 
@@ -146,9 +146,9 @@ class App(ctk.CTk):
         else:
             scanner: Lexer = Lexer(information)
             scanner.fill_table_of_tokens()
+            table = ExecuteOperation(scanner.get_table_of_valid_tokens())
+            print(table.result_operations)
 
-            res = execute_operation("", scanner.get_table_of_valid_tokens())
-            print("SI", res)
             messagebox.showinfo(
                 "Información", "El archivo se ha analizado correctamente")
 
@@ -156,7 +156,9 @@ class App(ctk.CTk):
         pass
 
     def destroy(self):
-        return super().destroy()
+        if messagebox.askokcancel("Salir", "¿Desea salir de la aplicación?"):
+            self.save_file()
+            super().destroy()
 
     def create_short_cut(self):
         self.bind_all("<Command-o>", lambda event: self.open_file())
