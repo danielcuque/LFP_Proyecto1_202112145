@@ -4,7 +4,6 @@ import customtkinter as ctk
 
 # Data
 from controller.lexer import Lexer
-from controller.operation import Operation
 from controller.token import Token
 
 # Helpers
@@ -140,13 +139,11 @@ class App(ctk.CTk):
                 "Error", "No hay texto para analizar")
         else:
             scanner: Lexer = Lexer(information)
+            scanner.fill_table_of_tokens()
 
-            # Get tokens
-            tokens: list[Token] = []
-            for i in range(len(information)):
-                tokens.append(scanner.next_token())
-
-            print(tokens)
+            tokens: list = scanner.get_tokens()
+            for token in tokens:
+                print(token)
 
             messagebox.showinfo(
                 "Información", "El archivo se ha analizado correctamente")
