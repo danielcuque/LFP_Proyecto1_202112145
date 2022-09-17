@@ -1,14 +1,20 @@
-import platform
-from tkinter import Menu, filedialog, messagebox, Text
+from platform import system
+from tkinter import (
+    filedialog,
+    Menu,
+    messagebox,
+    Text
+)
+
 import customtkinter as ctk
 
 # Data
 from controller.lexer import Lexer
-from controller.token import Token
 
 # Helpers
-from model.helpers.WindowPosition import WindowPosition
-from model.docs.processInformation import ProcessInformation
+from model.helpers.windowPosition import get_window_position
+from model.docs.processInformation import read_information, save_information, save_information_as
+from model.operations.executeOperation import execute_operation
 
 # Views
 
@@ -35,7 +41,7 @@ class App(ctk.CTk):
         self.protocol("WM_DELETE_WINDOW", self.destroy)
 
         command_to_execute = ""
-        my_os = platform.system()
+        my_os = system()
 
         if my_os == "Windows":
             command_to_execute = "Ctrl"
@@ -43,7 +49,7 @@ class App(ctk.CTk):
             command_to_execute = "Cmd"
 
         # Position of the app
-        self.geometry(WindowPosition().get_window_position(self.winfo_screenwidth(
+        self.geometry(get_window_position(self.winfo_screenwidth(
         ), self.winfo_screenheight(), self.APP_WIDTH, self.APP_HEIGHT))
 
         self.title("Analizador")
@@ -108,7 +114,7 @@ class App(ctk.CTk):
                 "Error", "No se ha seleccionado ningún archivo")
         else:
             self.PATH_FILE = path_file
-            uploaded_information: str = ProcessInformation.read_information(
+            uploaded_information: str = read_information(
                 self.PATH_FILE)
 
             if len(uploaded_information) <= 0:
@@ -122,14 +128,14 @@ class App(ctk.CTk):
 
     def save_file(self):
         information: str = self.entry_information.get("1.0", "end-1c")
-        ProcessInformation.save_information(self.PATH_FILE, information)
+        save_information(self.PATH_FILE, information)
 
     def save_file_as(self):
         path_to_save = filedialog.asksaveasfilename(
             initialdir="/", title="Select file", filetypes=(("Text files", "*.txt"), ("all files", "*.*")))
         if len(path_to_save) > 0:
             information: str = self.entry_information.get("1.0", "end-1c")
-            ProcessInformation.save_information_as(path_to_save, information)
+            save_information_as(path_to_save, information)
             self.PATH_FILE = path_to_save
 
     def scanner(self):
@@ -141,16 +147,8 @@ class App(ctk.CTk):
             scanner: Lexer = Lexer(information)
             scanner.fill_table_of_tokens()
 
-            valid_tokens: list = scanner.get_table_of_valid_tokens()
-            print("Valid tokens")
-            for token in valid_tokens:
-                print(token)
-
-            print("Invalid tokens")
-            invalid_tokens: list = scanner.get_table_of_invalid_tokens()
-            for token in invalid_tokens:
-                print(token)
-
+            res = execute_operation(scanner.get_table_of_valid_tokens())
+            print(res)
             messagebox.showinfo(
                 "Información", "El archivo se ha analizado correctamente")
 
