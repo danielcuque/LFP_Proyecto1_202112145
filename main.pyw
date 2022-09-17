@@ -141,8 +141,14 @@ class App(ctk.CTk):
             scanner: Lexer = Lexer(information)
             scanner.fill_table_of_tokens()
 
-            tokens: list = scanner.get_tokens()
-            for token in tokens:
+            valid_tokens: list = scanner.get_table_of_valid_tokens()
+            print("Valid tokens")
+            for token in valid_tokens:
+                print(token)
+
+            print("Invalid tokens")
+            invalid_tokens: list = scanner.get_table_of_invalid_tokens()
+            for token in invalid_tokens:
                 print(token)
 
             messagebox.showinfo(
