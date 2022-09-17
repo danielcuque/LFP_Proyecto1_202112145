@@ -28,32 +28,30 @@ class Lexer:
                 self._table_of_invalid_tokens.append(token)
 
     def next_token(self) -> Token:
-        self._skip_whitespace()
-
         if self._is_open_tag(self._character):
             literal: str = self._read_tag()
 
             if literal.count("/") > 1 or literal.count(">") > 1 or literal.count("<") > 1:
-                return Token(TokenType.ILLEGAL, literal, self._read_position, self._row)
+                return Token(TokenType.ILLEGAL, literal, self._read_position, self._row, len(self._table_of_invalid_tokens))
 
             if literal[1] == "/":
-                return Token(TokenType.CLOSE_TAG, literal, self._read_position, self._row)
+                return Token(TokenType.CLOSE_TAG, literal, self._read_position, self._row, len(self._table_of_valid_tokens))
 
             if literal[-2] == "/":
-                return Token(TokenType.AUTO_CLOSE_TAG, literal, self._read_position, self._row)
+                return Token(TokenType.AUTO_CLOSE_TAG, literal, self._read_position, self._row, len(self._table_of_valid_tokens))
 
-            return Token(TokenType.START_TAG, literal, self._read_position, self._row)
+            return Token(TokenType.START_TAG, literal, self._read_position, self._row, len(self._table_of_valid_tokens))
 
         elif self._is_letter(self._character):
             literal: str = self._read_letter()
-            return Token(TokenType.TEXT, literal, self._read_position, self._row)
+            return Token(TokenType.TEXT, literal, self._read_position, self._row, len(self._table_of_valid_tokens))
 
         elif self._is_number(self._character):
             literal: str = self._read_number()
             if literal.count(".") > 1:
-                return Token(TokenType.ILLEGAL, literal, self._read_position, self._row)
+                return Token(TokenType.ILLEGAL, literal, self._read_position, self._row, len(self._table_of_invalid_tokens))
 
-            return Token(TokenType.NUMBER, literal, self._read_position, self._row)
+            return Token(TokenType.NUMBER, literal, self._read_position, self._row, len(self._table_of_valid_tokens))
 
         elif match(r'\n', self._character):
             self._row += 1
@@ -61,7 +59,7 @@ class Lexer:
             return self.next_token()
         else:
             token = Token(TokenType.ILLEGAL,
-                          self._character, self._read_position, self._row)
+                          self._character, self._read_position, self._row, len(self._table_of_invalid_tokens))
 
         self._read_character()
         return token
@@ -98,7 +96,7 @@ class Lexer:
 
         return self._source[initial_position:self._position]
 
-    def _read_number(self) -> None:
+    def _read_number(self) -> str:
         initial_position: int = self._position
 
         while self._is_number(self._character):
@@ -114,10 +112,6 @@ class Lexer:
 
         self._read_character()
         return self._source[initial_position:self._position]
-
-    def _skip_whitespace(self) -> None:
-        while match(r'^\s$', self._character):
-            self._read_character()
 
     def get_table_of_valid_tokens(self) -> list:
         return self._table_of_valid_tokens

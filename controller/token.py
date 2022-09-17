@@ -25,6 +25,7 @@ class Token(NamedTuple):
     literal: str
     column: int
     row: int
+    position: int
     is_valid = property(lambda self: self.tokenType != TokenType.ILLEGAL)
 
     def get_type_name(self) -> str:
@@ -32,6 +33,9 @@ class Token(NamedTuple):
 
     def get_type_value(self) -> int:
         return self.tokenType.value
+
+    def get_position(self) -> int:
+        return self.position
 
     def __str__(self) -> str:
         return f"Token Type: {self.tokenType}, Lexeme: {self.literal}, Column: {self.column}, Row: {self.row}, Is Valid: {self.is_valid}"
