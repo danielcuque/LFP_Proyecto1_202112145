@@ -147,7 +147,6 @@ class App(ctk.CTk):
             scanner: Lexer = Lexer(information)
             scanner.fill_table_of_tokens()
             table = ExecuteOperation(scanner.get_table_of_valid_tokens())
-            print(table.result_operations)
 
             messagebox.showinfo(
                 "Información", "El archivo se ha analizado correctamente")
