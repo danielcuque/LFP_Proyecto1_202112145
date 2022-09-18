@@ -2,12 +2,19 @@ from typing import List
 
 from controller.token import Token
 
+from math import (
+    sin,
+    cos,
+    tan,
+    sqrt
+)
+
 valid_operations = {
     "SUMA": "+",
     "RESTA": "-",
     "MULTIPLICACION": "*",
     "DIVISION": "/",
-    "POTENCIA": "^",
+    "POTENCIA": "**",
     "RAIZ": "sqrt",
     "INVERSO": "1/",
     "SENO": "sin",
@@ -19,8 +26,8 @@ valid_operations = {
 class ExecuteOperation:
     def __init__(self, table_of_tokens: list):
         self.table_of_tokens: List[Token] = table_of_tokens
-        self.result_operations: list = []
         self.table_of_operations = []
+        self.result_operations: list = []
 
         self._open_operation_tags = 0
         self._read_position = 0
@@ -29,41 +36,41 @@ class ExecuteOperation:
     def _find_all_operations(self) -> None:
         open_tags = 0
         position = 0
-        operandos = []
+        operands = []
 
         while len(self.table_of_tokens) > position:
             token: Token = self.table_of_tokens[position]
             if self._is_start_tag_operation(token):
                 open_tags += 1
-                operandos.append(token)
+                operands.append(token)
 
             elif self._is_end_tag_operation(token):
                 open_tags -= 1
-                operandos.append(token)
+                operands.append(token)
 
             elif self._is_number_tag(token):
-                operandos.append(token)
+                operands.append(token)
 
-            if len(operandos) > 0 and open_tags == 0:
-                self.table_of_operations.append(operandos)
-                operandos = []
+            if len(operands) > 0 and open_tags == 0:
+                self.table_of_operations.append(operands)
+                operands = []
 
             position += 1
         self._execute_all_operations()
 
     def _execute_all_operations(self) -> None:
         for operators in self.table_of_operations:
-            res = self._aritmetic_operation(operators)
-            print("res", res)
+            res = self._arithmetic_operation(operators)
+            self.result_operations.append(res[0])
 
-
-    def _find_type_operation(self, token: Token) -> str:
+    @staticmethod
+    def _find_type_operation(token: Token) -> str:
         token_literal = token.literal.replace(" ", "")
         equals_index: int = token_literal.find("=")
         close_tag_index: int = token_literal.find(">")
         return token_literal[equals_index+1: close_tag_index]
 
-    def _aritmetic_operation(self, table_of_operators: list, prev_operation: str = ""):
+    def _arithmetic_operation(self, table_of_operators: list, prev_operation: str = ""):
         current_operation = self._find_type_operation(table_of_operators[0])
         position: int = 1
         res: str = ""
@@ -73,7 +80,8 @@ class ExecuteOperation:
 
             if self._is_start_tag_operation(token):
 
-                resp = self._aritmetic_operation(table_of_operators[position:], current_operation)
+                resp = self._arithmetic_operation(
+                    table_of_operators[position:], current_operation)
                 current_operation = resp[2]
                 res += f'{resp[0]}{valid_operations[current_operation]}'
                 position += resp[1]
@@ -87,26 +95,25 @@ class ExecuteOperation:
             elif self._is_end_tag_operation(token):
                 return [f'({res[:-1]})', position, prev_operation]
             position += 1
-            print(res)
 
         return [f'({res})', position, prev_operation]
 
-
-    def _is_start_tag_operation(self, tag: Token) -> bool:
+    @staticmethod
+    def _is_start_tag_operation(tag: Token) -> bool:
         return bool(tag.get_type_name() == "START_TAG" and "operacion" in tag.literal.lower())
 
-    def _is_end_tag_operation(self, tag: Token) -> bool:
+    @staticmethod
+    def _is_end_tag_operation(tag: Token) -> bool:
         return bool(tag.get_type_name() == "CLOSE_TAG" and "operacion" in tag.literal.lower())
 
-    def _is_number_tag(self, tag: Token) -> bool:
+    @staticmethod
+    def _is_number_tag(tag: Token) -> bool:
         return bool(tag.get_type_name() == "NUMBER")
 
-    def _is_special_operation(self, type_operation: str) -> bool:
+    @staticmethod
+    def _is_special_operation(type_operation: str) -> bool:
         type_operation = type_operation.upper()
         return bool(type_operation == "SENO" or type_operation == "COSENO" or type_operation == "TANGENTE" or type_operation == "RAIZ")
 
-
-
-
-
-
+    def get_result_operations(self) -> list:
+        return self.result_operations

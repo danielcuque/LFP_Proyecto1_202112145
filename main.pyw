@@ -7,16 +7,20 @@ from tkinter import (
 )
 
 import customtkinter as ctk
+from typing import List
 
 # Data
 from controller.lexer import Lexer
+from controller.token import Token
 
-# Helpers
+# Model
 from model.helpers.windowPosition import get_window_position
 from model.docs.processInformation import read_information, save_information, save_information_as
+from model.docs.htmlFile import HTMLFile
 from model.operations.executeOperation import ExecuteOperation
 
 # Views
+from view.showCredits import ShowCredits
 
 # # Modes: "System" (standard), "Dark", "Light"
 ctk.set_appearance_mode("dark")
@@ -32,6 +36,9 @@ class App(ctk.CTk):
     APP_HEIGHT: int = 700
 
     PATH_FILE: str = ""
+    VALID_TOKENS: List[Token] = []
+    INVALID_TOKENS: List[Token] = []
+    RESULT_OF_OPERATIONS: List[str] = []
 
     def __init__(self):
         super().__init__()
@@ -79,13 +86,20 @@ class App(ctk.CTk):
         self.scanner_menu = Menu(self.menu_options, tearoff=0)
         self.scanner_menu.add_command(
             label="Analizar", command=self.scanner, accelerator=f"{command_to_execute}+R")
+        self.scanner_menu.add_command(
+            label="Resultados", command=self.show_results, accelerator=f'{command_to_execute}+P')
+        self.scanner_menu.add_command(
+            label="Errores", command=self.show_errors, accelerator=f'{command_to_execute}+e')
 
         # Menu Help
         self.help_menu = Menu(self.menu_options, tearoff=0)
         self.help_menu.add_command(
-            label="Guía de usuario", command=self.about, accelerator=f"{command_to_execute}+U")
+            label="Guía de usuario", command=self.about_creator, accelerator=f"{command_to_execute}+U")
         self.help_menu.add_command(
-            label="Guía técnica", command=self.about, accelerator=f"{command_to_execute}+T")
+            label="Guía técnica", command=self.about_creator, accelerator=f"{command_to_execute}+T")
+        self.help_menu.add_command(
+            label="Temas de ayuda", command=self.about_creator, accelerator=f'{command_to_execute}+t')
+
 
         # Add menus to menu bar
         self.exit_menu = Menu(self.menu_options, tearoff=0)
@@ -105,6 +119,10 @@ class App(ctk.CTk):
             row=0, column=1, sticky="nsew", padx=10, pady=10)
 
         self.create_short_cut()
+
+    def about_creator(self):
+        ShowCredits(master=self)
+
 
     def open_file(self):
         path_file = filedialog.askopenfilename(
@@ -146,26 +164,44 @@ class App(ctk.CTk):
         else:
             scanner: Lexer = Lexer(information)
             scanner.fill_table_of_tokens()
-            table = ExecuteOperation(scanner.get_table_of_valid_tokens())
+
+            self.VALID_TOKENS = scanner.get_table_of_valid_tokens()
+            self.INVALID_TOKENS = scanner.get_table_of_invalid_tokens()
+            self.RESULT_OF_OPERATIONS = ExecuteOperation(self.VALID_TOKENS).get_result_operations()
 
             messagebox.showinfo(
                 "Información", "El archivo se ha analizado correctamente")
 
-    def about(self):
-        pass
+    def show_results(self):
+        if len(self.RESULT_OF_OPERATIONS) > 0:
+            html_file = HTMLFile(self.VALID_TOKENS)
+            html_file.styles_for_document()
+        else:
+            messagebox.showerror(
+                "Error", "No hay resultados para mostrar")
+
+    def show_errors(self):
+        if len(self.RESULT_OF_OPERATIONS) > 0:
+            htmlFile = HTMLFile()
+        else:
+            messagebox.showerror(
+                "Error", "No hay resultados para mostrar")
 
     def destroy(self):
         if messagebox.askokcancel("Salir", "¿Desea salir de la aplicación?"):
-            self.save_file()
+            if self.PATH_FILE:
+                self.save_file()
             super().destroy()
 
     def create_short_cut(self):
         self.bind_all("<Command-o>", lambda event: self.open_file())
-        self.bind_all("<Command-s>", lambda event: self.save_file())
-        self.bind("<Command-Shift-S>", lambda event: self.save_file_as())
-        self.bind_all("<Command-r>", lambda event: self.scanner())
-        self.bind_all("<Command-u>", lambda event: self.about())
         self.bind_all("<Command-q>", lambda event: self.destroy())
+        self.bind_all("<Command-s>", lambda event: self.save_file())
+        self.bind("<Command-Shift-s>", lambda event: self.save_file_as())
+        self.bind_all("<Command-r>", lambda event: self.scanner())
+        self.bind_all("<Command-t>", lambda event: self.about_creator())
+        self.bind_all("<Command-Shift-t>", lambda event: self.about_creator())
+        self.bind_all("<Command-Shift-u>", lambda event: self.about_creator())
 
 
 if __name__ == "__main__":
