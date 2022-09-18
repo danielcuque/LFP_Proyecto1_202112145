@@ -1,8 +1,4 @@
-from math import (
-    sin,
-    cos,
-    tan
-)
+from typing import List
 
 from controller.token import Token
 
@@ -21,17 +17,14 @@ valid_operations = {
 
 
 class ExecuteOperation:
-    def __init__(self, table_of_tokens: list = []):
-        self.table_of_tokens: list[Token] = table_of_tokens
+    def __init__(self, table_of_tokens: list):
+        self.table_of_tokens: List[Token] = table_of_tokens
         self.result_operations: list = []
         self.table_of_operations = []
 
         self._open_operation_tags = 0
         self._read_position = 0
         self._find_all_operations()
-
-        #self._current_operation = ""
-        #self._prev_operation = ""
 
     def _find_all_operations(self) -> None:
         open_tags = 0
@@ -63,14 +56,15 @@ class ExecuteOperation:
             res = self._aritmetic_operation(operators)
             print("res", res)
 
+
     def _find_type_operation(self, token: Token) -> str:
         token_literal = token.literal.replace(" ", "")
         equals_index: int = token_literal.find("=")
         close_tag_index: int = token_literal.find(">")
         return token_literal[equals_index+1: close_tag_index]
 
-    def _aritmetic_operation(self, table_of_operators: list):
-        type_operation = self._find_type_operation(table_of_operators[0])
+    def _aritmetic_operation(self, table_of_operators: list, prev_operation: str = ""):
+        current_operation = self._find_type_operation(table_of_operators[0])
         position: int = 1
         res: str = ""
 
@@ -78,24 +72,24 @@ class ExecuteOperation:
             token: Token = table_of_operators[position]
 
             if self._is_start_tag_operation(token):
-                type_operation = self._find_type_operation(table_of_operators[position])
 
-                resp = self._aritmetic_operation(table_of_operators[position:])
-                res += f'{resp[0]}{valid_operations[type_operation]}'
+                resp = self._aritmetic_operation(table_of_operators[position:], current_operation)
+                current_operation = resp[2]
+                res += f'{resp[0]}{valid_operations[current_operation]}'
                 position += resp[1]
 
             elif self._is_number_tag(token):
-                if type_operation in valid_operations:
-                    if self._is_special_operation(type_operation):
-                        res += f'{valid_operations[type_operation]}({token.literal})'
+                if current_operation in valid_operations:
+                    if self._is_special_operation(current_operation):
+                        res += f'{valid_operations[current_operation]}({token.literal}) '
                     else:
-                        res += f'{token.literal}{valid_operations[type_operation]}'
+                        res += f'{token.literal}{valid_operations[current_operation]}'
             elif self._is_end_tag_operation(token):
-                return [f'({res[:-1]})', position]
+                return [f'({res[:-1]})', position, prev_operation]
             position += 1
             print(res)
 
-        return [f'({res[:-1]})', position]
+        return [f'({res})', position, prev_operation]
 
 
     def _is_start_tag_operation(self, tag: Token) -> bool:
@@ -111,34 +105,6 @@ class ExecuteOperation:
         type_operation = type_operation.upper()
         return bool(type_operation == "SENO" or type_operation == "COSENO" or type_operation == "TANGENTE" or type_operation == "RAIZ")
 
-    def _execute_operationsv2(self, operation: str):
-        res = ""
-        while len(self.table_of_tokens) > self._read_position:
-            token: Token = self.table_of_tokens[self._read_position]
-            if token.get_type_name() == "START_TAG":
-                if "operacion" in token.literal.lower():
-                    self._open_tags += 1
-                    equals_index: int = token.literal.find("=")
-                    close_tag: int = token.literal.find(">")
-                    operation: str = token.literal.strip()[equals_index + 2: close_tag]
-                    self._read_position += 1
-                    res += "(" + self._execute_operations(operation)[:-1] + ") "
-            elif token.get_type_name() == "NUMBER":
-                if operation in valid_operations:
-                    if operation.upper() == "SENO" or operation == "COSENO" or operation == "TANGENTE":
-                        res += f"{valid_operations[operation]}({token.literal}) "
-                    else:
-                        res += f'{token.literal}{valid_operations[operation]}'
-            elif token.get_type_name() == "CLOSE_TAG":
-                if "operacion" in token.literal.lower():
-                    self._open_tags -= 1
-                    return res
-
-            if self._open_tags == 0:
-                if res != "":
-                    self.result_operations.append(res[:-1])
-                    res = ""
-            self._read_position += 1
 
 
 
