@@ -167,22 +167,18 @@ class App(ctk.CTk):
             self.INVALID_TOKENS = scanner.get_table_of_invalid_tokens()
             self.RESULT_OF_OPERATIONS = ExecuteOperation(self.VALID_TOKENS).get_result_operations()
 
-            print(self.VALID_TOKENS)
-            print(self.INVALID_TOKENS)
-
             messagebox.showinfo(
                 "Información", "El archivo se ha analizado correctamente")
 
     def show_results(self):
         if len(self.RESULT_OF_OPERATIONS) > 0:
             html_file = HTMLFile(self.VALID_TOKENS)
-            html_file.report_of_operations(self.RESULT_OF_OPERATIONS)
+            html_file.create_html_report(self.RESULT_OF_OPERATIONS)
         else:
             messagebox.showerror(
                 "Error", "No hay resultados para mostrar")
 
     def show_errors(self):
-        print(len(self.INVALID_TOKENS))
         if len(self.INVALID_TOKENS) > 0:
             html_file = HTMLFile(self.VALID_TOKENS)
             html_file.report_of_errors(self.INVALID_TOKENS)
