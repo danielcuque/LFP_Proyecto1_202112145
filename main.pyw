@@ -174,7 +174,7 @@ class App(ctk.CTk):
     def show_results(self):
         if len(self.RESULT_OF_OPERATIONS) > 0:
             html_file = HTMLFile(self.VALID_TOKENS)
-            html_file.create_html_report(self.RESULT_OF_OPERATIONS)
+            html_file.create_report_for_results(self.RESULT_OF_OPERATIONS)
         else:
             messagebox.showerror(
                 "Error", "No hay resultados para mostrar")
@@ -182,7 +182,8 @@ class App(ctk.CTk):
     def show_errors(self):
         if len(self.INVALID_TOKENS) > 0:
             html_file = HTMLFile(self.VALID_TOKENS)
-            html_file.report_of_errors(self.INVALID_TOKENS)
+            print(self.INVALID_TOKENS)
+            html_file.create_report_for_errors(self.INVALID_TOKENS)
         else:
             messagebox.showerror(
                 "Error", "No hay errores para mostrar")

@@ -27,7 +27,6 @@ class Lexer:
                 self._table_of_valid_tokens.append(token)
             else:
                 self._table_of_invalid_tokens.append(token)
-            self._column = 0
 
     def next_token(self) -> Token:
         if self._is_open_tag(self._character):
@@ -41,7 +40,6 @@ class Lexer:
 
             if literal[-2] == "/":
                 return Token(TokenType.AUTO_CLOSE_TAG, literal, self._column, self._row, self._read_position)
-
             return Token(TokenType.START_TAG, literal, self._column, self._row, self._read_position)
 
         elif self._is_letter(self._character):
@@ -57,6 +55,7 @@ class Lexer:
 
         elif match(r'\n', self._character):
             self._row += 1
+            self._column = 0
             self._read_character()
             return self.next_token()
 

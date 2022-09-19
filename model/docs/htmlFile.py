@@ -9,6 +9,7 @@ from re import match
 from controller.token import Token
 from model.helpers.items import colors
 
+
 class HTMLFile:
     def __init__(self, table_of_tokens: List) -> None:
         self.table_of_tokens: List[Token] = table_of_tokens
@@ -105,8 +106,26 @@ class HTMLFile:
 
         return res
 
-    def report_of_errors(self, table_of_invalid_tokens: List[str]):
-        print(table_of_invalid_tokens)
+    @staticmethod
+    def _report_of_errors(table_of_invalid_tokens: List[Token]):
+        res = ""
+        for token in table_of_invalid_tokens:
+            literal = token.literal
+            if "<" in literal:
+                literal = literal.replace("<", "&lt")
+            elif ">" in literal:
+                literal = literal.replace(">", "&gt")
+            res += f'<tr><td> {token.row} </td><td>{token.column} </td> <td> {literal} </td> <td>{token.get_type_name()} </td> </tr>'
+
+        return f'<table border="0" cellborder="1" cellspacing="0">' \
+               f'<tr>' \
+               f'  <td> Fila </td>' \
+               f'  <td> Columna </td>' \
+               f'  <td> Lexema </td>' \
+               f'  <td> Tipo </td>' \
+               f'</tr>' \
+               f'{res}' \
+               f'</table>'
 
     @staticmethod
     def _get_attributes(token: Token, attribute: str) -> str:
@@ -204,7 +223,7 @@ class HTMLFile:
          """
         return styles
 
-    def create_html_report(self, table_of_operations: List[Token]):
+    def create_report_for_results(self, table_of_operations: List[Dict]):
         report = f'{self._get_header()}' \
                  f'{self._get_styles()}' \
                  f'<body>' \
@@ -219,6 +238,19 @@ class HTMLFile:
         file.write(report)
         file.close()
 
+    def create_report_for_errors(self, table_of_errors: List[Token]):
+        report = f'{self._get_header()}' \
+                 f'{self._get_styles()}' \
+                 f'<body>' \
+                 f'{self._report_of_errors(table_of_errors)}' \
+                 f'</body>' \
+                 f'</html>'
+        path_file = filedialog.askdirectory()
+        name_file = "ERRORES_202112145"
+
+        file = open(f'{path_file}/{name_file}.html', "w")
+        file.write(report)
+        file.close()
     @staticmethod
     def _is_start_tag_style(token: Token) -> bool:
         return bool(token.get_type_name() == "START_TAG" and "estilo" in token.literal.lower())
