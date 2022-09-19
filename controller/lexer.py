@@ -1,171 +1,132 @@
-from controller.operation import Operation
-from controller.token import Token
-from model.tokens.validCharacters import ValidCharacters
+from re import match
+
+from controller.token import (
+    Token,
+    TokenType,
+)
 
 
 class Lexer:
-    token_table = []
-    row = 0
-    column = 0
-    prev_state = 0
-    state = 0
-    valid_characters = ValidCharacters()
 
-    def scan(self, cadena: str, operation: Operation):
-        open_tag = ""
-        close_tag = ""
-        token = ""
-        operations = []
-        closes = False
+    def __init__(self, source: str) -> None:
+        self._source = source
+        self._character: str = ""
+        self._read_position: int = 0
+        self._position: int = 0
+        self._row: int = 0
+        self._column: int = 0
+        self._table_of_valid_tokens: list = []
+        self._table_of_invalid_tokens: list = []
 
-        while len(cadena) > 0:
-            char = cadena[0]
+        self._read_character()
 
-            if char == "\n":
-                self.row += 1
-                self.column = 0
-                cadena = cadena[1:]
-                continue
-            elif char == " ":
-                self.column += 1
-                if len(token) > 0:
-                    self.save_token(token, "Correcto")
-                    token = ""
-                cadena = cadena[1:]
-                continue
+    def fill_table_of_tokens(self) -> None:
+        while self._character != "":
+            token = self.next_token()
+            if token.is_valid:
+                self._table_of_valid_tokens.append(token)
+            else:
+                self._table_of_invalid_tokens.append(token)
+            self._column = 0
 
-            elif self.valid_characters.is_letter(char) is None and self.valid_characters.is_number(char) is None and self.valid_characters.is_slash(char) is None and self.valid_characters.is_equal(char) is None and self.valid_characters.is_bracket_open(char) is None and self.valid_characters.is_bracket_close(char) is None and self.valid_characters.is_slash(char) is None:
+    def next_token(self) -> Token:
+        if self._is_open_tag(self._character):
+            literal: str = self._read_tag()
 
-                self.column += 1
-                self.save_token(token, "Correcto")
-                self.save_token(char, "Error")
-                token = ""
-                cadena = cadena[1:]
-                continue
+            if literal.count("/") > 1 or literal.count(">") > 1 or literal.count(">") == 0 or literal.count("<") > 1 or literal.count("<") == 0:
+                return Token(TokenType.ILLEGAL, literal, self._column, self._row, self._read_position)
 
-            # verify current state
-            if self.state == 0:
-                if self.valid_characters.is_bracket_open(char):
-                    self.save_token(char, "Correcto")
-                    self.state = 1
-                    self.prev_state = 0
+            if literal[1] == "/":
+                return Token(TokenType.CLOSE_TAG, literal, self._column, self._row, self._read_position)
 
-            elif self.state == 1:
-                if self.valid_characters.is_letter(char.lower()):
-                    token += char
+            if literal[-2] == "/":
+                return Token(TokenType.AUTO_CLOSE_TAG, literal, self._column, self._row, self._read_position)
 
-                    self.state = 1
-                    self.prev_state = 1
+            return Token(TokenType.START_TAG, literal, self._column, self._row, self._read_position)
 
-                elif self.valid_characters.is_bracket_close(char):
-                    self.save_token(token, "Correcto")
-                    self.save_token(char, "Correcto")
+        elif self._is_letter(self._character):
+            literal: str = self._read_letter()
+            return Token(TokenType.TEXT, literal, self._column, self._row, self._read_position)
 
-                    if closes:
-                        close_tag = token
-                        closes = False
+        elif self._is_number(self._character):
+            literal: str = self._read_number()
+            if literal.count(".") > 1:
+                return Token(TokenType.ILLEGAL, literal, self._column, self._row, self._read_position)
 
-                        if close_tag.lower() == "operacion":
-                            operation.operands = operations
-                            return [cadena, operation]
+            return Token(TokenType.NUMBER, literal, self._column, self._row, self._read_position)
 
-                    if open_tag.lower() == "operacion":
-                        op = Operation(token)
-                        value = self.scan(cadena[1:], op) # recursion
-                        cadena = value[0]
-                        operations.append(value[1])
+        elif match(r'\n', self._character):
+            self._row += 1
+            self._read_character()
+            return self.next_token()
 
-                    open_tag = token = ""
+        elif match(r'\s', self._character):
+            self._read_character()
+            return self.next_token()
+        else:
+            token = Token(TokenType.ILLEGAL,
+                          self._character, self._column, self._row, self._read_position)
 
-                    self.state = 2
-                    self.prev_state = 1
+        self._read_character()
+        return token
 
-                elif self.valid_characters.is_equal(char):
-                    open_tag = token
+    @staticmethod
+    def _is_letter(character: str) -> bool:
+        return bool(match(r'^[a-záéíóúA-ZÁÉÍÓÚñÑ_\[\]]$', character))
 
-                    self.save_token(token, "Correcto")
-                    self.save_token(char, "Correcto")
-                    token = ""
+    @staticmethod
+    def _is_number(character: str) -> bool:
+        return bool(match(r'^[0-9.]$', character))
 
-                    self.state = 3
-                    self.prev_state = 1
+    @staticmethod
+    def _is_open_tag(character: str) -> bool:
+        return bool(match(r'^<$', character))
 
-                elif self.valid_characters.is_slash(char):
-                    closes = True
-                    self.save_token(char, "Correcto")
+    @staticmethod
+    def _is_close_tag(character: str) -> bool:
+        return bool(match(r'^>$', character))
 
-                    self.state = 5
-                    self.prev_state = 1
+    @staticmethod
+    def _is_slash(character: str) -> bool:
+        return bool(match(r'^/$', character))
 
-            elif self.state == 2:
-                if self.valid_characters.is_bracket_open(char):
-                    self.save_token(token, "Correcto")
-                    self.save_token(char, "Correcto")
+    def _read_character(self) -> None:
+        if self._read_position >= len(self._source):
+            self._character = ""
+        else:
+            self._character = self._source[self._read_position]
 
-                    token = ""
+        self._column += 1
+        self._position = self._read_position
+        self._read_position += 1
 
-                    self.state = 1
-                    self.prev_state = 2
+    def _read_letter(self) -> str:
+        initial_position: int = self._position
 
-                elif self.valid_characters.is_number(char):
-                    token += char
+        while self._is_letter(self._character):
+            self._read_character()
 
-                    self.state = 4
-                    self.prev_state = 2
+        return self._source[initial_position:self._position]
 
-                elif self.valid_characters.is_letter(char):
-                    token += char
+    def _read_number(self) -> str:
+        initial_position: int = self._position
 
-                    self.state = 2
-                    self.prev_state = 2
+        while self._is_number(self._character):
+            self._read_character()
 
-            elif self.state == 3:
-                if self.valid_characters.is_letter(char.lower()):
-                    token += char
+        return self._source[initial_position:self._position]
 
-                    self.state = 1
-                    self.prev_state = 3
+    def _read_tag(self) -> str:
+        initial_position: int = self._position
 
-            elif self.state == 4:
-                if self.valid_characters.is_bracket_open(char.lower()):
-                    if open_tag.lower() == "numero":
-                        operations.append(int(token))
+        while not self._is_close_tag(self._character) and self._character != "\n":
+            self._read_character()
 
-                    self.save_token(token, "Correcto")
-                    self.save_token(char, "Correcto")
-                    token = ""
+        self._read_character()
+        return self._source[initial_position:self._position]
 
-                    self.state = 1
-                    self.prev_state = 4
+    def get_table_of_valid_tokens(self) -> list:
+        return self._table_of_valid_tokens
 
-                elif self.valid_characters.is_number(char.lower()):
-                    token += char
-
-                    self.state = 4
-                    self.prev_state = 4
-
-            elif self.state == 5:
-                if self.valid_characters.is_letter(char.lower()):
-                    token += char
-
-                    self.state = 1
-                    self.prev_state = 5
-
-            self.column += 1
-            cadena = cadena[1:]
-
-        operation.operands = operation
-        return [cadena, operations]
-
-    def save_token(self, token: str, is_valid: str) -> None:
-        if token == "":
-            return
-        self.token_table.append(Token(self.row, self.column, token, is_valid))
-
-    def imprimir_tokens(self):
-        print('-'*31)
-        print("| {:<4} | {:<7} | {:<10} | {:<12}".format('Fila', 'Columna', 'Lexema', "Tipo"))
-        print('-'*31)
-        for token in self.token_table:
-            print("| {:<4} | {:<7} | {:<12} | {:<12} |".format(
-                token.row, token.column, token.lexeme, token.is_valid))
+    def get_table_of_invalid_tokens(self) -> list:
+        return self._table_of_invalid_tokens
