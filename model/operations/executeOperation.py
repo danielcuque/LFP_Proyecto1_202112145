@@ -61,14 +61,20 @@ class ExecuteOperation:
     def _execute_all_operations(self) -> None:
         for operators in self.table_of_operations:
             res = self._arithmetic_operation(operators)
-            self.result_operations.append(res[0])
+            type_operation = self._find_operation(operators)
+            self.result_operations.append({
+                "TIPO": type_operation,
+                "OPERACION": res[0],
+                "RESULTADO": eval(res[0])
+            })
+
 
     @staticmethod
     def _find_type_operation(token: Token) -> str:
         token_literal = token.literal.replace(" ", "")
         equals_index: int = token_literal.find("=")
         close_tag_index: int = token_literal.find(">")
-        return token_literal[equals_index+1: close_tag_index]
+        return token_literal[equals_index + 1: close_tag_index].upper()
 
     def _arithmetic_operation(self, table_of_operators: list, prev_operation: str = ""):
         current_operation = self._find_type_operation(table_of_operators[0])
@@ -79,7 +85,6 @@ class ExecuteOperation:
             token: Token = table_of_operators[position]
 
             if self._is_start_tag_operation(token):
-
                 resp = self._arithmetic_operation(
                     table_of_operators[position:], current_operation)
                 current_operation = resp[2]
@@ -87,16 +92,33 @@ class ExecuteOperation:
                 position += resp[1]
 
             elif self._is_number_tag(token):
+                current_operation = current_operation.upper()
                 if current_operation in valid_operations:
                     if self._is_special_operation(current_operation):
                         res += f'{valid_operations[current_operation]}({token.literal}) '
+                    elif current_operation == "POTENCIA":
+                        res += f'{token.literal}{valid_operations[current_operation]}'
+                    elif current_operation == "INVERSO":
+                        res += f'{valid_operations[current_operation]}{token.literal} '
                     else:
                         res += f'{token.literal}{valid_operations[current_operation]}'
             elif self._is_end_tag_operation(token):
+                if current_operation.upper() == "POTENCIA":
+                    return [f'({res[:-2]})', position, prev_operation]
                 return [f'({res[:-1]})', position, prev_operation]
             position += 1
 
         return [f'({res})', position, prev_operation]
+
+    def _find_operation(self, table_of_operators: list) -> str:
+        open_tags = 0
+
+        for token in table_of_operators:
+            if self._is_start_tag_operation(token):
+                open_tags += 1
+            if open_tags > 1:
+                return "COMPLEJA"
+        return self._find_type_operation(table_of_operators[0])
 
     @staticmethod
     def _is_start_tag_operation(tag: Token) -> bool:

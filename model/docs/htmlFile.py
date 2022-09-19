@@ -1,4 +1,4 @@
-from typing import List
+from typing import (List, Dict)
 from controller.token import Token
 
 
@@ -27,8 +27,6 @@ class HTMLFile:
                 open_tag_style = False
                 self._table_of_styles.append(token)
 
-        print(self._table_of_styles)
-
     def _capture_tokens_to_write(self) -> None:
         open_tag_function = False
 
@@ -44,7 +42,15 @@ class HTMLFile:
                 open_tag_function = False
                 self._table_of_functions.append(token)
 
-        print(self._table_of_functions)
+    def report_of_operations(self, table_of_results: List[Dict]):
+        print(table_of_results)
+
+
+    def report_of_errors(self, table_of_invalid_tokens: List[str]):
+        print(table_of_invalid_tokens)
+
+    def create_html_report(self):
+        pass
 
     @staticmethod
     def _is_start_tag_style(token: Token) -> bool:
@@ -61,6 +67,20 @@ class HTMLFile:
     @staticmethod
     def _is_end_tag_function(token: Token) -> bool:
         return bool(token.get_type_name() == "END_TAG" and "funcion" in token.literal.lower())
+
+    @staticmethod
+    def create_file_header() -> str:
+        header = """
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8" />
+                <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+                <title>Resultado de operaciones</title>
+            </head>
+            """
+
+        return header
 
     @staticmethod
     def styles_for_document() -> str:
@@ -86,3 +106,5 @@ class HTMLFile:
         </style>
         """
         return styles
+
+

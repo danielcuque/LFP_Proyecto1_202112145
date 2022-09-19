@@ -85,9 +85,9 @@ class App(ctk.CTk):
         # Menu Tools
         self.scanner_menu = Menu(self.menu_options, tearoff=0)
         self.scanner_menu.add_command(
-            label="Analizar", command=self.scanner, accelerator=f"{command_to_execute}+R")
+            label="Analizar", command=self.scanner, accelerator=f"{command_to_execute}+r")
         self.scanner_menu.add_command(
-            label="Resultados", command=self.show_results, accelerator=f'{command_to_execute}+P')
+            label="Resultados", command=self.show_results, accelerator=f'{command_to_execute}+p')
         self.scanner_menu.add_command(
             label="Errores", command=self.show_errors, accelerator=f'{command_to_execute}+e')
 
@@ -99,7 +99,6 @@ class App(ctk.CTk):
             label="Guía técnica", command=self.about_creator, accelerator=f"{command_to_execute}+T")
         self.help_menu.add_command(
             label="Temas de ayuda", command=self.about_creator, accelerator=f'{command_to_execute}+t')
-
 
         # Add menus to menu bar
         self.exit_menu = Menu(self.menu_options, tearoff=0)
@@ -123,7 +122,6 @@ class App(ctk.CTk):
     def about_creator(self):
         ShowCredits(master=self)
 
-
     def open_file(self):
         path_file = filedialog.askopenfilename(
             initialdir="/", title="Select file", filetypes=(("Text files", "*.txt"), ("all files", "*.*")))
@@ -141,8 +139,8 @@ class App(ctk.CTk):
             else:
                 self.show_info_file(uploaded_information)
 
-    def show_info_file(self, uploaded_inforation: str):
-        self.entry_information.insert("1.0", uploaded_inforation)
+    def show_info_file(self, uploaded_information: str):
+        self.entry_information.insert("1.0", uploaded_information)
 
     def save_file(self):
         information: str = self.entry_information.get("1.0", "end-1c")
@@ -169,23 +167,28 @@ class App(ctk.CTk):
             self.INVALID_TOKENS = scanner.get_table_of_invalid_tokens()
             self.RESULT_OF_OPERATIONS = ExecuteOperation(self.VALID_TOKENS).get_result_operations()
 
+            print(self.VALID_TOKENS)
+            print(self.INVALID_TOKENS)
+
             messagebox.showinfo(
                 "Información", "El archivo se ha analizado correctamente")
 
     def show_results(self):
         if len(self.RESULT_OF_OPERATIONS) > 0:
             html_file = HTMLFile(self.VALID_TOKENS)
-            html_file.styles_for_document()
+            html_file.report_of_operations(self.RESULT_OF_OPERATIONS)
         else:
             messagebox.showerror(
                 "Error", "No hay resultados para mostrar")
 
     def show_errors(self):
-        if len(self.RESULT_OF_OPERATIONS) > 0:
-            htmlFile = HTMLFile()
+        print(len(self.INVALID_TOKENS))
+        if len(self.INVALID_TOKENS) > 0:
+            html_file = HTMLFile(self.VALID_TOKENS)
+            html_file.report_of_errors(self.INVALID_TOKENS)
         else:
             messagebox.showerror(
-                "Error", "No hay resultados para mostrar")
+                "Error", "No hay errores para mostrar")
 
     def destroy(self):
         if messagebox.askokcancel("Salir", "¿Desea salir de la aplicación?"):
@@ -195,6 +198,7 @@ class App(ctk.CTk):
 
     def create_short_cut(self):
         self.bind_all("<Command-o>", lambda event: self.open_file())
+        self.bind_all("<Command-p>", lambda event: self.show_results())
         self.bind_all("<Command-q>", lambda event: self.destroy())
         self.bind_all("<Command-s>", lambda event: self.save_file())
         self.bind("<Command-Shift-s>", lambda event: self.save_file_as())
