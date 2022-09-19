@@ -54,8 +54,6 @@ class Lexer:
             return Token(TokenType.NUMBER, literal, self._column, self._row, self._read_position)
 
         elif match(r'\n', self._character):
-            self._row += 1
-            self._column = 0
             self._read_character()
             return self.next_token()
 
@@ -95,6 +93,9 @@ class Lexer:
         else:
             self._character = self._source[self._read_position]
 
+        if self._character == "\n":
+            self._column = 0
+            self._row += 1
         self._column += 1
         self._position = self._read_position
         self._read_position += 1
