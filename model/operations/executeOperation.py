@@ -9,18 +9,7 @@ from math import (
     sqrt
 )
 
-valid_operations = {
-    "SUMA": "+",
-    "RESTA": "-",
-    "MULTIPLICACION": "*",
-    "DIVISION": "/",
-    "POTENCIA": "**",
-    "RAIZ": "sqrt",
-    "INVERSO": "1/",
-    "SENO": "sin",
-    "COSENO": "cos",
-    "TANGENTE": "tan",
-}
+from model.helpers.items import valid_operations
 
 
 class ExecuteOperation:

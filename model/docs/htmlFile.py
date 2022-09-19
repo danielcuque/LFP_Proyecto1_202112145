@@ -4,8 +4,10 @@ from tkinter import (
     filedialog
 )
 
-from controller.token import Token
+from re import match
 
+from controller.token import Token
+from model.helpers.items import colors
 
 class HTMLFile:
     def __init__(self, table_of_tokens: List) -> None:
@@ -107,6 +109,24 @@ class HTMLFile:
         print(table_of_invalid_tokens)
 
     @staticmethod
+    def _get_attributes(token: Token, attribute: str) -> str:
+        words: List[str] = []
+        r: str = ""
+
+        for word in token.literal:
+            if match(r'^[a-zA-Z0-9]$', word):
+                r += word.lower()
+            else:
+                words.append(r)
+                r = ""
+
+        if attribute in words:
+            index_attribute = words.index(attribute.lower())
+            return words[index_attribute + 1]
+        else:
+            return ""
+
+    @staticmethod
     def _get_header() -> str:
         header = """
              <!DOCTYPE html>
@@ -120,14 +140,25 @@ class HTMLFile:
 
         return header
 
-    @staticmethod
-    def _get_attributes(token: Token) -> str:
-        pass
-
     def _get_styles(self) -> str:
-        style_title = ""
-        style_description = ""
-        style_content = ""
+        color_title: str = ""
+        color_description: str = ""
+        color_content: str = ""
+
+        font_size_title: str = ""
+        font_size_description: str = ""
+        font_size_content: str = ""
+
+        for item in self._table_of_styles:
+            if "titulo" in item.literal.lower():
+                color_title = self._get_attributes(item, "color")
+                font_size_title = self._get_attributes(item, "tamanio")
+            elif "descripcion" in item.literal.lower():
+                color_description = self._get_attributes(item, "color")
+                font_size_description = self._get_attributes(item, "tamanio")
+            elif "contenido" in item.literal.lower():
+                color_content = self._get_attributes(item, "color")
+                font_size_content = self._get_attributes(item, "tamanio")
 
         styles = """
          <style>
@@ -143,13 +174,13 @@ class HTMLFile:
              }
 
              h1  {
-                 font-size: 20px;
-                 color: red;
+                 font-size:""" + font_size_title + """px;
+                 color: """ + colors[color_title.upper()] + """;
              }
              
              h3  {
-                 font-size: 12px;
-                 color: green;
+                 font-size: """ + font_size_description + """px;
+                 color: """ + colors[color_description.upper()] + """;
              }
              table {
                  border-collapse: collapse;
@@ -166,8 +197,8 @@ class HTMLFile:
              }
              
              .operacion {
-                 font-size: 3px;
-                 color: gray;
+                 font-size: """ + font_size_content + """px;
+                 color: """ + colors[color_content.upper()] + """;
              }
          </style>
          """

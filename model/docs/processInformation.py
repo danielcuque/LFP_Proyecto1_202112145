@@ -9,9 +9,3 @@ def save_information(path_file: str, information: str) -> None:
     info_file = open(path_file, "w", encoding="utf8", errors="ignore")
     info_file.write(information)
     info_file.close()
-
-
-def save_information_as(path_file: str, information: str) -> None:
-    info_file = open(path_file, "w", encoding="utf8", errors="ignore")
-    info_file.write(information)
-    info_file.close()

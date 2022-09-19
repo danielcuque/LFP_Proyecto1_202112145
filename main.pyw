@@ -15,7 +15,8 @@ from controller.token import Token
 
 # Model
 from model.helpers.windowPosition import get_window_position
-from model.docs.processInformation import read_information, save_information, save_information_as
+from model.docs.processInformation import read_information, save_information
+
 from model.docs.htmlFile import HTMLFile
 from model.operations.executeOperation import ExecuteOperation
 
@@ -151,7 +152,7 @@ class App(ctk.CTk):
             initialdir="/", title="Select file", filetypes=(("Text files", "*.txt"), ("all files", "*.*")))
         if len(path_to_save) > 0:
             information: str = self.entry_information.get("1.0", "end-1c")
-            save_information_as(path_to_save, information)
+            save_information(path_to_save, information)
             self.PATH_FILE = path_to_save
 
     def scanner(self):
