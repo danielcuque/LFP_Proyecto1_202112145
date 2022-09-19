@@ -6,7 +6,7 @@ from math import (
     sin,
     cos,
     tan,
-    sqrt
+    pow,
 )
 
 from model.helpers.items import valid_operations
@@ -37,7 +37,7 @@ class ExecuteOperation:
                 open_tags -= 1
                 operands.append(token)
 
-            elif self._is_number_tag(token):
+            elif self._is_number_tag(token) and open_tags > 0:
                 operands.append(token)
 
             if len(operands) > 0 and open_tags == 0:
@@ -56,7 +56,6 @@ class ExecuteOperation:
                 "OPERACION": res[0],
                 "RESULTADO": eval(res[0])
             })
-
 
     @staticmethod
     def _find_type_operation(token: Token) -> str:
@@ -77,7 +76,11 @@ class ExecuteOperation:
                 resp = self._arithmetic_operation(
                     table_of_operators[position:], current_operation)
                 current_operation = resp[2]
-                res += f'{resp[0]}{valid_operations[current_operation]}'
+                if current_operation == "INVERSO":
+                    res += f'{resp[0]}'
+                else:
+                    res += f'{resp[0]}{valid_operations[current_operation]}'
+
                 position += resp[1]
 
             elif self._is_number_tag(token):
@@ -88,12 +91,18 @@ class ExecuteOperation:
                     elif current_operation == "POTENCIA":
                         res += f'{token.literal}{valid_operations[current_operation]}'
                     elif current_operation == "INVERSO":
-                        res += f'{valid_operations[current_operation]}{token.literal} '
+                        res += f'{token.literal}'
+                    elif current_operation == "RAIZ":
+                        res += f'(1/{token.literal})**'
                     else:
                         res += f'{token.literal}{valid_operations[current_operation]}'
             elif self._is_end_tag_operation(token):
-                if current_operation.upper() == "POTENCIA":
+                if current_operation == "POTENCIA":
                     return [f'({res[:-2]})', position, prev_operation]
+                elif current_operation == "RAIZ":
+                    return [f'({res[3:-2]}', position, prev_operation]
+                elif current_operation == "INVERSO":
+                    return [f'(1/{res})', position, prev_operation]
                 return [f'({res[:-1]})', position, prev_operation]
             position += 1
 
@@ -124,7 +133,7 @@ class ExecuteOperation:
     @staticmethod
     def _is_special_operation(type_operation: str) -> bool:
         type_operation = type_operation.upper()
-        return bool(type_operation == "SENO" or type_operation == "COSENO" or type_operation == "TANGENTE" or type_operation == "RAIZ")
+        return bool(type_operation == "SENO" or type_operation == "COSENO" or type_operation == "TANGENTE")
 
     def get_result_operations(self) -> list:
         return self.result_operations

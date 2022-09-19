@@ -195,11 +195,12 @@ class App(ctk.CTk):
             super().destroy()
 
     def create_short_cut(self):
+        self.bind_all("<Command-e>", lambda event: self.show_errors())
         self.bind_all("<Command-o>", lambda event: self.open_file())
         self.bind_all("<Command-p>", lambda event: self.show_results())
         self.bind_all("<Command-q>", lambda event: self.destroy())
         self.bind_all("<Command-s>", lambda event: self.save_file())
-        self.bind("<Command-Shift-s>", lambda event: self.save_file_as())
+        self.bind_all("<Command-Shift-s>", lambda event: self.save_file_as())
         self.bind_all("<Command-r>", lambda event: self.scanner())
         self.bind_all("<Command-t>", lambda event: self.about_creator())
         self.bind_all("<Command-Shift-t>", lambda event: self.about_creator())

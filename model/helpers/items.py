@@ -9,6 +9,7 @@ valid_operations = {
     "SENO": "sin",
     "COSENO": "cos",
     "TANGENTE": "tan",
+    "MOD": "%"
 }
 
 colors = {
@@ -18,5 +19,6 @@ colors = {
     "GRIS": "gray",
     "AMARILLO": "yellow",
     "MORADO": "purple",
+    "NEGRO": "black",
     "": "gray"
 }
