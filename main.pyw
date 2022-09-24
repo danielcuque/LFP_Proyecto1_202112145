@@ -174,7 +174,7 @@ class App(ctk.CTk):
     def show_results(self):
         if len(self.RESULT_OF_OPERATIONS) > 0:
             html_file = HTMLFile(self.VALID_TOKENS)
-            html_file.create_report_for_results(self.RESULT_OF_OPERATIONS)
+            html_file.create_report_for_results(self.RESULT_OF_OPERATIONS, self.VALID_TOKENS)
         else:
             messagebox.showerror(
                 "Error", "No hay resultados para mostrar")

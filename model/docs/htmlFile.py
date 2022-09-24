@@ -83,13 +83,13 @@ class HTMLFile:
 
     @staticmethod
     def _get_content(table_of_operations: List[Dict]):
-        res = "<div class='operacion'>"
+        res = ""
 
         for item in table_of_operations:
-            res += f'<p>{item["TIPO"]}</p>' \
-                   f'<p>{item["OPERACION"]} = {item["RESULTADO"]}'
+            res += f'<div class="operacion"><p class="type">{item["TIPO"]}</p>' \
+                   f'<p>{item["OPERACION"]} = {item["RESULTADO"]}</div>'
 
-        return f'{res}</div>'
+        return f'{res}'
 
     def report_of_operations(self, table_of_operations: List[Dict]) -> str:
         res = ""
@@ -111,7 +111,10 @@ class HTMLFile:
         res = ""
         for token in table_of_invalid_tokens:
             literal = token.literal
-            if "<" in literal:
+            if "<" in literal and ">" in literal:
+                literal = literal.replace("<", "&lt")
+                literal = literal.replace(">", "&gt")
+            elif "<" in literal:
                 literal = literal.replace("<", "&lt")
             elif ">" in literal:
                 literal = literal.replace(">", "&gt")
@@ -126,6 +129,7 @@ class HTMLFile:
                f'</tr>' \
                f'{res}' \
                f'</table>'
+    
 
     @staticmethod
     def _get_attributes(token: Token, attribute: str) -> str:
@@ -189,7 +193,7 @@ class HTMLFile:
              body {
                  padding: 2rem;
                  font-family: "Karla", sans-serif;
-                 background-color: #e5eff5;
+                 background-color: #fff;
              }
 
              h1  {
@@ -218,16 +222,21 @@ class HTMLFile:
              .operacion {
                  font-size: """ + font_size_content + """px;
                  color: """ + colors[color_content.upper()] + """;
+                 margin: 1rem 0 1rem 0;
+             }
+             .type { 
+                    font-weight: bold;
              }
          </style>
          """
         return styles
 
-    def create_report_for_results(self, table_of_operations: List[Dict]):
+    def create_report_for_results(self, table_of_operations: List[Dict], table_of_valid_tokens: List[Token]):
         report = f'{self._get_header()}' \
                  f'{self._get_styles()}' \
                  f'<body>' \
                  f'{self.report_of_operations(table_of_operations)}' \
+                 f'{self._report_of_errors(table_of_valid_tokens)}'\
                  f'</body>' \
                  f'</html>' \
 
@@ -251,6 +260,7 @@ class HTMLFile:
         file = open(f'{path_file}/{name_file}.html', "w")
         file.write(report)
         file.close()
+
     @staticmethod
     def _is_start_tag_style(token: Token) -> bool:
         return bool(token.get_type_name() == "START_TAG" and "estilo" in token.literal.lower())
