@@ -174,7 +174,7 @@ class App(ctk.CTk):
     def show_results(self):
         if len(self.RESULT_OF_OPERATIONS) > 0:
             html_file = HTMLFile(self.VALID_TOKENS)
-            html_file.create_html_report(self.RESULT_OF_OPERATIONS)
+            html_file.create_report_for_results(self.RESULT_OF_OPERATIONS, self.VALID_TOKENS)
         else:
             messagebox.showerror(
                 "Error", "No hay resultados para mostrar")
@@ -182,7 +182,8 @@ class App(ctk.CTk):
     def show_errors(self):
         if len(self.INVALID_TOKENS) > 0:
             html_file = HTMLFile(self.VALID_TOKENS)
-            html_file.report_of_errors(self.INVALID_TOKENS)
+            print(self.INVALID_TOKENS)
+            html_file.create_report_for_errors(self.INVALID_TOKENS)
         else:
             messagebox.showerror(
                 "Error", "No hay errores para mostrar")
@@ -194,11 +195,12 @@ class App(ctk.CTk):
             super().destroy()
 
     def create_short_cut(self):
+        self.bind_all("<Command-e>", lambda event: self.show_errors())
         self.bind_all("<Command-o>", lambda event: self.open_file())
         self.bind_all("<Command-p>", lambda event: self.show_results())
         self.bind_all("<Command-q>", lambda event: self.destroy())
         self.bind_all("<Command-s>", lambda event: self.save_file())
-        self.bind("<Command-Shift-s>", lambda event: self.save_file_as())
+        self.bind_all("<Command-Shift-s>", lambda event: self.save_file_as())
         self.bind_all("<Command-r>", lambda event: self.scanner())
         self.bind_all("<Command-t>", lambda event: self.about_creator())
         self.bind_all("<Command-Shift-t>", lambda event: self.about_creator())

@@ -9,6 +9,7 @@ from re import match
 from controller.token import Token
 from model.helpers.items import colors
 
+
 class HTMLFile:
     def __init__(self, table_of_tokens: List) -> None:
         self.table_of_tokens: List[Token] = table_of_tokens
@@ -82,13 +83,13 @@ class HTMLFile:
 
     @staticmethod
     def _get_content(table_of_operations: List[Dict]):
-        res = "<div class='operacion'>"
+        res = ""
 
         for item in table_of_operations:
-            res += f'<p>{item["TIPO"]}</p>' \
-                   f'<p>{item["OPERACION"]} = {item["RESULTADO"]}'
+            res += f'<div class="operacion"><p class="type">{item["TIPO"]}</p>' \
+                   f'<p>{item["OPERACION"]} = {item["RESULTADO"]}</div>'
 
-        return f'{res}</div>'
+        return f'{res}'
 
     def report_of_operations(self, table_of_operations: List[Dict]) -> str:
         res = ""
@@ -105,8 +106,30 @@ class HTMLFile:
 
         return res
 
-    def report_of_errors(self, table_of_invalid_tokens: List[str]):
-        print(table_of_invalid_tokens)
+    @staticmethod
+    def _report_of_errors(table_of_invalid_tokens: List[Token]):
+        res = ""
+        for token in table_of_invalid_tokens:
+            literal = token.literal
+            if "<" in literal and ">" in literal:
+                literal = literal.replace("<", "&lt")
+                literal = literal.replace(">", "&gt")
+            elif "<" in literal:
+                literal = literal.replace("<", "&lt")
+            elif ">" in literal:
+                literal = literal.replace(">", "&gt")
+            res += f'<tr><td> {token.row} </td><td>{token.column} </td> <td> {literal} </td> <td>{token.get_type_name()} </td> </tr>'
+
+        return f'<table border="0" cellborder="1" cellspacing="0">' \
+               f'<tr>' \
+               f'  <td> Fila </td>' \
+               f'  <td> Columna </td>' \
+               f'  <td> Lexema </td>' \
+               f'  <td> Tipo </td>' \
+               f'</tr>' \
+               f'{res}' \
+               f'</table>'
+    
 
     @staticmethod
     def _get_attributes(token: Token, attribute: str) -> str:
@@ -170,7 +193,7 @@ class HTMLFile:
              body {
                  padding: 2rem;
                  font-family: "Karla", sans-serif;
-                 background-color: #e5eff5;
+                 background-color: #fff;
              }
 
              h1  {
@@ -199,21 +222,40 @@ class HTMLFile:
              .operacion {
                  font-size: """ + font_size_content + """px;
                  color: """ + colors[color_content.upper()] + """;
+                 margin: 1rem 0 1rem 0;
+             }
+             .type { 
+                    font-weight: bold;
              }
          </style>
          """
         return styles
 
-    def create_html_report(self, table_of_operations: List[Token]):
+    def create_report_for_results(self, table_of_operations: List[Dict], table_of_valid_tokens: List[Token]):
         report = f'{self._get_header()}' \
                  f'{self._get_styles()}' \
                  f'<body>' \
                  f'{self.report_of_operations(table_of_operations)}' \
+                 f'{self._report_of_errors(table_of_valid_tokens)}'\
                  f'</body>' \
                  f'</html>' \
 
         path_file = filedialog.askdirectory()
         name_file = "RESULTADOS_202112145"
+
+        file = open(f'{path_file}/{name_file}.html', "w")
+        file.write(report)
+        file.close()
+
+    def create_report_for_errors(self, table_of_errors: List[Token]):
+        report = f'{self._get_header()}' \
+                 f'{self._get_styles()}' \
+                 f'<body>' \
+                 f'{self._report_of_errors(table_of_errors)}' \
+                 f'</body>' \
+                 f'</html>'
+        path_file = filedialog.askdirectory()
+        name_file = "ERRORES_202112145"
 
         file = open(f'{path_file}/{name_file}.html', "w")
         file.write(report)

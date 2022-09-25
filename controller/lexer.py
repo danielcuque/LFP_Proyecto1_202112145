@@ -23,11 +23,11 @@ class Lexer:
     def fill_table_of_tokens(self) -> None:
         while self._character != "":
             token = self.next_token()
-            if token.is_valid:
-                self._table_of_valid_tokens.append(token)
-            else:
-                self._table_of_invalid_tokens.append(token)
-            self._column = 0
+            if token.literal != "":
+                if token.is_valid:
+                    self._table_of_valid_tokens.append(token)
+                else:
+                    self._table_of_invalid_tokens.append(token)
 
     def next_token(self) -> Token:
         if self._is_open_tag(self._character):
@@ -41,7 +41,6 @@ class Lexer:
 
             if literal[-2] == "/":
                 return Token(TokenType.AUTO_CLOSE_TAG, literal, self._column, self._row, self._read_position)
-
             return Token(TokenType.START_TAG, literal, self._column, self._row, self._read_position)
 
         elif self._is_letter(self._character):
@@ -56,7 +55,6 @@ class Lexer:
             return Token(TokenType.NUMBER, literal, self._column, self._row, self._read_position)
 
         elif match(r'\n', self._character):
-            self._row += 1
             self._read_character()
             return self.next_token()
 
@@ -72,7 +70,7 @@ class Lexer:
 
     @staticmethod
     def _is_letter(character: str) -> bool:
-        return bool(match(r'^[a-záéíóúA-ZÁÉÍÓÚñÑ_\[\]]$', character))
+        return bool(match(r'^[a-záéíóúA-ZÁÉÍÓÚñÑ_\[\]\(\)\*\+=\^√\/\-%:]$', character))
 
     @staticmethod
     def _is_number(character: str) -> bool:
@@ -96,6 +94,9 @@ class Lexer:
         else:
             self._character = self._source[self._read_position]
 
+        if self._character == "\n":
+            self._column = 0
+            self._row += 1
         self._column += 1
         self._position = self._read_position
         self._read_position += 1
