@@ -1,3 +1,4 @@
+from webbrowser import open_new_tab, get, open_new
 from platform import system
 from tkinter import (
     filedialog,
@@ -95,9 +96,9 @@ class App(ctk.CTk):
         # Menu Help
         self.help_menu = Menu(self.menu_options, tearoff=0)
         self.help_menu.add_command(
-            label="Guía de usuario", command=self.about_creator, accelerator=f"{command_to_execute}+U")
+            label="Guía de usuario", command=self.open_user_guide, accelerator=f"{command_to_execute}+U")
         self.help_menu.add_command(
-            label="Guía técnica", command=self.about_creator, accelerator=f"{command_to_execute}+T")
+            label="Guía técnica", command=self.open_technical_guide, accelerator=f"{command_to_execute}+T")
         self.help_menu.add_command(
             label="Temas de ayuda", command=self.about_creator, accelerator=f'{command_to_execute}+t')
 
@@ -140,6 +141,14 @@ class App(ctk.CTk):
             else:
                 self.show_info_file(uploaded_information)
 
+    def open_user_guide(self):
+        path_file = "file:///Users/daniel/Desktop/USAC%20SEGUNDO%20SEMESTRE%202022/LFP/LABORATORIO/Proyectos/PROYECTO%201/proyecto-1-lfp/Manual%20de%20Usuario.pdf"
+        open_new(path_file)
+
+    def open_technical_guide(self):
+        path_file = "file:///Users/daniel/Desktop/USAC%20SEGUNDO%20SEMESTRE%202022/LFP/LABORATORIO/Proyectos/PROYECTO%201/proyecto-1-lfp/Manual%20Tecnico.pdf"
+        open_new(path_file)
+
     def show_info_file(self, uploaded_information: str):
         self.entry_information.insert("1.0", uploaded_information)
 
@@ -166,7 +175,8 @@ class App(ctk.CTk):
 
             self.VALID_TOKENS = scanner.get_table_of_valid_tokens()
             self.INVALID_TOKENS = scanner.get_table_of_invalid_tokens()
-            self.RESULT_OF_OPERATIONS = ExecuteOperation(self.VALID_TOKENS).get_result_operations()
+            self.RESULT_OF_OPERATIONS = ExecuteOperation(
+                self.VALID_TOKENS).get_result_operations()
 
             messagebox.showinfo(
                 "Información", "El archivo se ha analizado correctamente")
@@ -174,7 +184,8 @@ class App(ctk.CTk):
     def show_results(self):
         if len(self.RESULT_OF_OPERATIONS) > 0:
             html_file = HTMLFile(self.VALID_TOKENS)
-            html_file.create_report_for_results(self.RESULT_OF_OPERATIONS, self.VALID_TOKENS)
+            html_file.create_report_for_results(
+                self.RESULT_OF_OPERATIONS, self.VALID_TOKENS)
         else:
             messagebox.showerror(
                 "Error", "No hay resultados para mostrar")
